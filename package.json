@@ -6,8 +6,8 @@
  "author": "Abdul Aziz Khoso",
  "license": "MIT",
  "scripts": {
-  "serve": "nodemon index.js",
-  "start": "node index.js",
+  "start": "nodemon index.js",
+  "serve": "node index.js",
   "lint": "eslint index.js"
  },
  "eslintConfig": {

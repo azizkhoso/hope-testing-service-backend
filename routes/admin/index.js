@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-await-in-loop */
 const express = require('express');
@@ -8,6 +9,7 @@ const fs = require('fs');
 const yup = require('yup');
 
 const Test = require('../../models/test');
+const Announcement = require('../../models/announcement');
 
 const storage = multer.diskStorage({
   destination: (req, res, cb) => {
@@ -18,6 +20,12 @@ const storage = multer.diskStorage({
   },
 });
 
+const announcementSchema = yup.object({
+  title: yup.string().min(2, 'Title should be at least 2 characters long').required('Title is required'),
+  details: yup.string().min(3, 'Details should be at least 3 characters long').required('Details are required'),
+  link: yup.string().matches(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/, 'Link should be valid').test('emptyLink', 'Link can be empty', (value) => value !== ''),
+  isImportant: yup.bool('isImportant should be boolean'),
+});
 const testSchema = yup.object({
   title: yup.string().required('Title is required').min(4, 'Enter at least 4 characters'),
   subject: yup.string().required('Subject is required'),
@@ -54,7 +62,34 @@ router.get('/dashboard', async (req, res) => {
 });
 
 router.get('/announcements', async (req, res) => {
-  res.end('Admin dashboard');
+  try {
+    const announcements = await Announcement.find();
+    res.json({ announcements });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/announcements', async (req, res) => {
+  try {
+    await announcementSchema.validate(req.body);
+    const announcement = Announcement.create(req.body);
+    res.json({ announcement });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+router.delete('/announcements/:_id', async (req, res) => {
+  try {
+    const announcement = await Announcement.findOneAndDelete(
+      { _id: req.params._id },
+      { new: true },
+    );
+    res.json({ announcement });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 router.get('/tests', async (req, res) => {

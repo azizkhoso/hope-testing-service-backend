@@ -2,6 +2,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const yup = require('yup');
+
+const StatusMessageError = require('../others/StatusMessageError');
+
 const Student = require('../models/student');
 
 const router = express.Router();
@@ -21,7 +24,7 @@ router.post('/student', async (req, res) => {
     const student = result._doc;
     if (student.password !== req.body.password) throw new Error('Incorrect password, please try again');
     const token = jwt.sign(
-      { student: { ...student, password: undefined } }, // Password should not be shared
+      { student: { ...student, password: undefined }, role: 'student' }, // Password should not be shared
       process.env.JWT_SECRET,
       {
         expiresIn: '1h',
@@ -57,8 +60,28 @@ router.post('/admin', async (req, res) => {
   if (req.body.password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Admin password is incorrect' });
   }
-  const token = jwt.sign({ admin: 'admin' }, process.env.JWT_SECRET);
+  const token = jwt.sign({ admin: 'admin', role: 'admin' }, process.env.JWT_SECRET);
   return res.json({ admin: 'admin', token });
+});
+
+router.get('/verify', async (req, res) => {
+  try {
+    const { authorization } = req.headers;
+    if (!authorization) throw new StatusMessageError('Unauthorized request', 401);
+    // Authorization format: Bearer <token>
+    const token = authorization.split(' ')[1];
+    if (!token) throw new StatusMessageError('Unauthorized request', 401);
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ ...user });
+  } catch (e) {
+    if (e.status) {
+      res.status(e.status || 401).json({ error: e.message });
+    } else if (e instanceof jwt.TokenExpiredError) {
+      res.status(403).json({ error: 'Session expired, please login again' });
+    } else {
+      res.status(500).json({ error: e.message });
+    }
+  }
 });
 
 module.exports = router;

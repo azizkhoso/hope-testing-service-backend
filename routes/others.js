@@ -1,9 +1,23 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
 const Test = require('../models/test');
+const Announcement = require('../models/announcement');
 const StatusMessageError = require('../others/StatusMessageError');
 
 const router = express.Router();
+
+router.get('/announcements', async (req, res) => {
+  const { query } = req;
+  try {
+    const announcements = await Announcement.find({
+      // important or all announcements will be fetched
+      isImportant: Boolean(query.isImportant) || undefined,
+    });
+    res.json({ announcements });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 router.get('/demo-tests', async (req, res) => {
   const { query } = req;
@@ -14,7 +28,7 @@ router.get('/demo-tests', async (req, res) => {
     });
     res.json({ demoTests });
   } catch (e) {
-    res.status(e.status).json({ error: e.message });
+    res.status(500).json({ error: e.message });
   }
 });
 
