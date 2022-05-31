@@ -52,7 +52,6 @@ const StudentSchema = mongoose.Schema({
   },
   phoneNumber: {
     type: Number,
-    unique: true,
     default: 0,
   },
   address: {

@@ -2,3 +2,5 @@ node_modules
 .env
 cert.pem
 key.pem
+yarn.lock
+package-lock.json
