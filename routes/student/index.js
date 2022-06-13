@@ -1,15 +1,29 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
 const date = require('date-and-time');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+
 const Test = require('../../models/test');
 const StatusMessageError = require('../../others/StatusMessageError');
 const Submission = require('../../models/submission');
+const Application = require('../../models/application');
+
+const storage = multer.diskStorage({
+  destination: (req, res, cb) => {
+    cb(null, 'uploads/challans/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
 const router = express.Router();
 
 router.get('/tests', async (req, res) => {
   try {
-    const tests = await Test.find({ qualification: req.student.qualification, isDemo: false }).select('-questions');
+    const tests = await Test.find({ isDemo: false }).select('-questions');
     res.json({ tests });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -57,6 +71,32 @@ router.post('/submissions', async (req, res) => {
     res.json({ _id: submission._id });
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message });
+  }
+});
+
+const upload = multer({ storage, limits: { fileSize: 30000 } });
+router.post('/test-application', upload.single('image'), async (req, res) => {
+  try {
+    const foundApplication = await Application.findOne(
+      { test: req.body.test, student: req.student._id },
+    );
+    if (foundApplication) {
+      fs.unlinkSync(`uploads/challans/${req.file.originalname}`);
+      throw new Error('Already applied');
+    }
+    const oldFileName = req.file.originalname;
+    const ext = path.extname(oldFileName);
+    const newName = `${oldFileName}${Math.random()}${ext}`;
+    fs.renameSync(`uploads/challans/${oldFileName}`, `uploads/challans/${newName}`);
+    const application = req.body;
+    const updated = {
+      ...application,
+      image: newName,
+    };
+    const newApplication = await Application.create(updated);
+    res.json({ newApplication });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 

@@ -10,6 +10,7 @@ const yup = require('yup');
 
 const Test = require('../../models/test');
 const Announcement = require('../../models/announcement');
+const applicationsRouter = require('./application');
 
 const storage = multer.diskStorage({
   destination: (req, res, cb) => {
@@ -56,6 +57,8 @@ const trueFalseSchema = yup.object({
 });
 
 const router = express.Router();
+
+router.use('/test-applications', applicationsRouter);
 
 router.get('/dashboard', async (req, res) => {
   res.end('Admin dashboard');
@@ -164,7 +167,7 @@ router.post('/tests/update', upload.array('images'), async (req, res) => {
   });
   // Deleting images from local storage
   fs.readdir('uploads', (err, files) => {
-    files.forEach((file) => fs.unlink(`uploads/${file}`, (e) => {
+    files?.forEach((file) => fs.unlink(`uploads/${file}`, (e) => {
       if (e) console.error(e);
       console.log(`uploads/${file} deleted successfully...`);
     }));

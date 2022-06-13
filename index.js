@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const signupRouter = require('./routes/signup');
 const loginRouter = require('./routes/login');
@@ -16,6 +17,8 @@ const db = require('./config/db');
 app.use(cors()); // For accessing from any where
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use('/challans', express.static(path.join(__dirname, 'uploads', 'challans')));
+
 app.use('/', othersRouter);
 app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
