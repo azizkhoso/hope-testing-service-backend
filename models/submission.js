@@ -22,7 +22,6 @@ const SubmissionSchema = new mongoose.Schema({
         },
         answer: {
           type: String,
-          required: true,
           trim: true,
           default: '',
         },

@@ -34,13 +34,16 @@ router.get('/tests/:_id', async (req, res) => {
   try {
     const result = await Test.findOne({ _id: req.params._id });
     if (!result) throw new StatusMessageError('Test not found', 404);
+    // Check whether student has already attempted or not
+    const found = await Submission.findOne({ testId: result._id, submittedBy: req.student._id });
+    if (found && found._doc) throw new StatusMessageError('Test is already attempted', 400);
     // Check whether test can be attempted or not
     const test = result._doc;
     const now = new Date();
     const startsAt = new Date(test.startsAt);
     const submittableBefore = new Date(test.submittableBefore);
-    const isSubmittable = (date.subtract(submittableBefore, now) > 0)
-                          && (date.subtract(now, startsAt) > 0);
+    const isSubmittable = (date.subtract(submittableBefore, now).toSeconds() > 0)
+                          || (date.subtract(now, startsAt).toSeconds() > 0);
     if (!isSubmittable) throw new StatusMessageError('Test is not active at the moment', 400);
     res.json({ test: result._doc });
   } catch (e) {
@@ -60,8 +63,8 @@ router.post('/submissions', async (req, res) => {
     const now = new Date();
     const startsAt = new Date(test.startsAt);
     const submittableBefore = new Date(test.submittableBefore);
-    const isSubmittable = (date.subtract(submittableBefore, now) > 0)
-                          && (date.subtract(now, startsAt) > 0);
+    const isSubmittable = (date.subtract(submittableBefore, now).toSeconds() > 0)
+                          || (date.subtract(now, startsAt).toSeconds() > 0);
     if (!isSubmittable) throw new StatusMessageError('Test is not active at the moment', 400);
     const submission = await Submission.create({
       testId: req.body.testId,
