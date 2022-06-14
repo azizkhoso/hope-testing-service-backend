@@ -4,3 +4,4 @@ cert.pem
 key.pem
 yarn.lock
 package-lock.json
+uploads/challans/*

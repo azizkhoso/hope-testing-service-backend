@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const signupRouter = require('./routes/signup');
 const loginRouter = require('./routes/login');
@@ -10,6 +11,18 @@ const adminRouter = require('./routes/admin');
 const studentRouter = require('./routes/student');
 
 const verifyToken = require('./middlewares/verifyToken');
+
+try {
+  if (!fs.existsSync('uploads')) {
+    console.log('creating uploads direcotry');
+    fs.mkdirSync('uploads');
+  } else if (!fs.existsSync('uploads/challans')) {
+    console.log('creating uploads/challans directory');
+    fs.mkdirSync('uploads/challans');
+  }
+} catch (e) {
+  console.error(e.message);
+}
 
 const app = express();
 const db = require('./config/db');
