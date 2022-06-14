@@ -39,10 +39,6 @@
   "yup": "^0.32.11"
  },
  "devDependencies": {
-  "eslint": "^8.5.0",
-  "eslint-config-airbnb": "^18.2.1",
-  "eslint-config-airbnb-base": "^15.0.0",
-  "eslint-plugin-import": "^2.25.3",
-  "nodemon": "^2.0.15"
+  "nodemon": "^2.0.16"
  }
 }
