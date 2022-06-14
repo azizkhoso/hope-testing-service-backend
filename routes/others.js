@@ -9,10 +9,14 @@ const router = express.Router();
 router.get('/announcements', async (req, res) => {
   const { query } = req;
   try {
-    const announcements = await Announcement.find({
-      // important or all announcements will be fetched
-      isImportant: Boolean(query.isImportant) || undefined,
-    });
+    let announcements;
+    if (query.isImportant) {
+      announcements = await Announcement.find({
+        isImportant: true,
+      });
+    } else {
+      announcements = await Announcement.find();
+    }
     res.json({ announcements });
   } catch (e) {
     res.status(500).json({ error: e.message });
