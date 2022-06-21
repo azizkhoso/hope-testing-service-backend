@@ -10,9 +10,6 @@
   "start": "node index.js",
   "lint": "eslint index.js"
  },
- "engines": {
-  "node": "16.15.0"
- },
  "eslintConfig": {
   "env": {
    "es6": true
