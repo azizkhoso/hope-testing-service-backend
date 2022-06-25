@@ -10,6 +10,7 @@ const yup = require('yup');
 
 const Test = require('../../models/test');
 const Announcement = require('../../models/announcement');
+const Submission = require('../../models/submission');
 
 const applicationsRouter = require('./application');
 const studentsRouter = require('./students');
@@ -223,6 +224,15 @@ router.delete('/tests/:_id', async (req, res) => {
     res.json({ test });
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+});
+
+router.get('/submissions/:testId', async (req, res) => {
+  try {
+    const submissions = await Submission.find({ test: req.params.testId }).populate('test').populate('submittedBy').sort({ totalCorrect: 'desc' });
+    res.json({ submissions });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
