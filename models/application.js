@@ -5,10 +5,12 @@ const ApplicationSchema = mongoose.Schema({
   test: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Test',
+    required: true,
   },
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
+    required: true,
   },
   image: {
     type: String,

@@ -10,7 +10,9 @@ const yup = require('yup');
 
 const Test = require('../../models/test');
 const Announcement = require('../../models/announcement');
+
 const applicationsRouter = require('./application');
+const studentsRouter = require('./students');
 
 const storage = multer.diskStorage({
   destination: (req, res, cb) => {
@@ -59,6 +61,7 @@ const trueFalseSchema = yup.object({
 const router = express.Router();
 
 router.use('/test-applications', applicationsRouter);
+router.use('/students', studentsRouter);
 
 router.get('/dashboard', async (req, res) => {
   res.end('Admin dashboard');

@@ -1,15 +1,16 @@
 const mongoose = require('mongoose');
 
+const Test = require('./test');
+
 const SubmissionSchema = new mongoose.Schema({
-  testId: {
-    type: String,
-    trim: true,
+  test: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Test',
     required: true,
-    unique: true,
   },
   submittedBy: {
-    type: String,
-    trim: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
     required: true,
   },
   answers: {
@@ -29,6 +30,24 @@ const SubmissionSchema = new mongoose.Schema({
     ],
     required: true,
   },
+  totalCorrect: {
+    type: Number,
+    default: 0,
+  }
+});
+
+SubmissionSchema.pre('save', async function(next) {
+  const result = await Test.findById(this.test);
+  if (!result) throw new Error('Test not found');
+  const test = result._doc;
+  let totalCorrect = 0;
+  test.questions.forEach((q) => {
+    const correctAnswer = q.answer;
+    const givenAnswer = this.answers.find((a) => a.questionId == q.id)?.answer;
+    if (correctAnswer === givenAnswer) totalCorrect++;
+  })
+  this.totalCorrect = totalCorrect;
+  next();
 });
 
 const Submission = mongoose.model('Submission', SubmissionSchema);

@@ -32,10 +32,13 @@ router.get('/tests', async (req, res) => {
 
 router.get('/tests/:_id', async (req, res) => {
   try {
+    const application = await Application.findOne({ test: req.params._id, student: req.student._id });
+    if (!application || !application._doc) throw new Error('Not applied, please submit your challan first');
+    if (!application._doc.approved) throw new Error('Not eligible, your challan is not approved yet');
     const result = await Test.findOne({ _id: req.params._id });
     if (!result) throw new StatusMessageError('Test not found', 404);
     // Check whether student has already attempted or not
-    const found = await Submission.findOne({ testId: result._id, submittedBy: req.student._id });
+    const found = await Submission.findOne({ test: result._id, submittedBy: req.student._id });
     if (found && found._doc) throw new StatusMessageError('Test is already attempted', 400);
     // Check whether test can be attempted or not
     const test = result._doc;
@@ -53,11 +56,11 @@ router.get('/tests/:_id', async (req, res) => {
 
 router.post('/submissions', async (req, res) => {
   try {
-    const result = await Test.findOne({ _id: req.body.testId });
+    const result = await Test.findOne({ _id: req.body.test });
     if (!result) throw new StatusMessageError('Test not found', 404);
     const test = result._doc;
     // Check whether test is already submitted
-    const found = await Submission.findOne({ testId: test._id, submittedBy: req.student._id });
+    const found = await Submission.findOne({ test: test._id, submittedBy: req.student._id });
     if (found && found._doc) throw new StatusMessageError('Test is already attempted', 400);
     // Check whether test can be submitted or not
     const now = new Date();
@@ -67,7 +70,7 @@ router.post('/submissions', async (req, res) => {
                           || (date.subtract(now, startsAt).toSeconds() > 0);
     if (!isSubmittable) throw new StatusMessageError('Test is not active at the moment', 400);
     const submission = await Submission.create({
-      testId: req.body.testId,
+      test: req.body.test,
       submittedBy: req.student._id,
       answers: req.body.answers,
     });
@@ -95,6 +98,7 @@ router.post('/test-application', upload.single('image'), async (req, res) => {
     const updated = {
       ...application,
       image: newName,
+      student: req.student._id,
     };
     const newApplication = await Application.create(updated);
     res.json({ newApplication });
