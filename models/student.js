@@ -28,12 +28,6 @@ const StudentSchema = mongoose.Schema({
     min: 1000000000000,
     max: 9999999999999,
   },
-  qualification: {
-    type: String,
-    required: true,
-    trim: true,
-    default: '',
-  },
   age: {
     type: Number,
     default: 10,

@@ -33,11 +33,6 @@ const TeacherSchema = mongoose.Schema({
     min: 1000000000000,
     max: 9999999999999,
   },
-  qualification: {
-    type: String,
-    trim: true,
-    default: '',
-  },
   age: {
     type: Number,
     default: 18,

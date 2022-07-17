@@ -23,12 +23,6 @@ const TestSchema = mongoose.Schema({
     required: true,
     min: new Date(),
   },
-  qualification: {
-    type: String,
-    trim: true,
-    required: true,
-    minLength: 1,
-  },
   isDemo: {
     type: Boolean,
     default: false,
