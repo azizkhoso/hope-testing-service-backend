@@ -53,6 +53,14 @@ const StudentSchema = mongoose.Schema({
     trim: true,
     default: '',
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  confirmationCode: {
+    type: Number,
+    default: Number(Math.random() * 1000000).toFixed(0),
+  },
 });
 
 const Student = mongoose.model('Student', StudentSchema);

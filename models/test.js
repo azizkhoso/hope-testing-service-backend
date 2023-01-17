@@ -30,7 +30,7 @@ const TestSchema = mongoose.Schema({
   createdBy: {
     type: String,
     required: true,
-    default: 'admin',
+    default: 'HTS',
     trim: true,
   },
   questions: {

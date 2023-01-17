@@ -21,6 +21,17 @@ const storage = multer.diskStorage({
 
 const router = express.Router();
 
+// email verification check
+router.use((req, res, next) => {
+  try {
+    if (!req.student?.isEmailVerified) {
+      throw new Error('Email not verified');
+    } else next();
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 router.get('/tests', async (req, res) => {
   try {
     const tests = await Test.find({ isDemo: false }).select('-questions');
@@ -32,9 +43,14 @@ router.get('/tests', async (req, res) => {
 
 router.get('/tests/:_id', async (req, res) => {
   try {
-    const application = await Application.findOne({ test: req.params._id, student: req.student._id });
-    if (!application || !application._doc) throw new Error('Not applied, please submit your challan first');
-    if (!application._doc.approved) throw new Error('Not eligible, your challan is not approved yet');
+    const application = await Application.findOne({
+      test: req.params._id,
+      student: req.student._id,
+    });
+    if (!application || !application._doc)
+      throw new Error('Not applied, please submit your challan first');
+    if (!application._doc.approved)
+      throw new Error('Not eligible, your challan is not approved yet');
     const result = await Test.findOne({ _id: req.params._id });
     if (!result) throw new StatusMessageError('Test not found', 404);
     // Check whether student has already attempted or not
@@ -45,8 +61,9 @@ router.get('/tests/:_id', async (req, res) => {
     const now = new Date();
     const startsAt = new Date(test.startsAt);
     const submittableBefore = new Date(test.submittableBefore);
-    const isSubmittable = (date.subtract(submittableBefore, now).toSeconds() > 0)
-                          || (date.subtract(now, startsAt).toSeconds() > 0);
+    const isSubmittable =
+      date.subtract(submittableBefore, now).toSeconds() > 0 ||
+      date.subtract(now, startsAt).toSeconds() > 0;
     if (!isSubmittable) throw new StatusMessageError('Test is not active at the moment', 400);
     res.json({ test: result._doc });
   } catch (e) {
@@ -66,8 +83,9 @@ router.post('/submissions', async (req, res) => {
     const now = new Date();
     const startsAt = new Date(test.startsAt);
     const submittableBefore = new Date(test.submittableBefore);
-    const isSubmittable = (date.subtract(submittableBefore, now).toSeconds() > 0)
-                          || (date.subtract(now, startsAt).toSeconds() > 0);
+    const isSubmittable =
+      date.subtract(submittableBefore, now).toSeconds() > 0 ||
+      date.subtract(now, startsAt).toSeconds() > 0;
     if (!isSubmittable) throw new StatusMessageError('Test is not active at the moment', 400);
     const submission = await Submission.create({
       test: req.body.test,
@@ -83,9 +101,10 @@ router.post('/submissions', async (req, res) => {
 const upload = multer({ storage, limits: { fileSize: 30000 } });
 router.post('/test-application', upload.single('image'), async (req, res) => {
   try {
-    const foundApplication = await Application.findOne(
-      { test: req.body.test, student: req.student._id },
-    );
+    const foundApplication = await Application.findOne({
+      test: req.body.test,
+      student: req.student._id,
+    });
     if (foundApplication) {
       fs.unlinkSync(`uploads/challans/${req.file.originalname}`);
       throw new Error('Already applied');

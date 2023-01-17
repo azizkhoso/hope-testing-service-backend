@@ -7,11 +7,13 @@ const SubmissionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Test',
     required: true,
+    unique: false,
   },
   submittedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
     required: true,
+    unique: false,
   },
   answers: {
     type: [
