@@ -21,7 +21,7 @@ router.post('/student', async (req, res) => {
   try {
     await schema.validate(req.body);
     const result = await Student.findOne({ email: req.body.email }).select(
-      '_id fullName email password qualification',
+      '_id fullName email password qualification isEmailVerified',
     );
     if (!result) throw new Error('Student not found');
     // The record lies in _doc field for Mongoose findeOne

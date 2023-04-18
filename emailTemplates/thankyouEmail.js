@@ -64,7 +64,7 @@ module.exports = function thankyouEmail(firstName) {
                 With your account you have the options to prepare for your exams, tests and get ready to grow up!</p>
         <div style="text-align: center;">
           <button type="button" style="color: white; background-color: rgb(119, 120, 240); border: none; border-radius: 4px; padding: 8px;">
-            <a style="text-decoration: none; color: white;" href="${process.env.BACKEND_URL}">
+            <a style="text-decoration: none; color: white;" href="${process.env.FRONTEND_URL}">
               Go to Hope Testing Service
             </a>
           </button>
