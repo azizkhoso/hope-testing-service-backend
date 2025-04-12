@@ -30,7 +30,7 @@ const db = require('./config/db');
 app.use(cors()); // For accessing from any where
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use('/challans', express.static(path.join(__dirname, 'uploads', 'challans')));
+app.use('/uploads/challans', express.static(path.join(__dirname, 'uploads', 'challans')));
 
 app.use('/', othersRouter);
 app.use('/signup', signupRouter);

@@ -4,18 +4,32 @@ const date = require('date-and-time');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const crypto = require('crypto');
 
 const Test = require('../../models/test');
 const StatusMessageError = require('../../others/StatusMessageError');
 const Submission = require('../../models/submission');
 const Application = require('../../models/application');
 
+// assuming this file is in routes/students and root is where package.json is
+const rootDir = path.join(__dirname, '..', '..');
+
 const storage = multer.diskStorage({
-  destination: (req, res, cb) => {
-    cb(null, 'uploads/challans/');
+  destination: (req, file, cb) => {
+    // Correct path to uploads/challans under root
+    const directory = path.join(rootDir, 'uploads', 'challans', req.student._id);
+
+    // create directory if it doesn't exist
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
+
+    cb(null, directory);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    const hash = crypto.randomBytes(8).toString('base64').replace(/[\/\\]/g, 'e');
+    const name = `${hash}---${file.originalname}`;
+    cb(null, name);
   },
 });
 
@@ -35,7 +49,8 @@ router.use((req, res, next) => {
 router.get('/tests', async (req, res) => {
   try {
     const tests = await Test.find({ isDemo: false }).select('-questions');
-    res.json({ tests });
+    const attemptedTests = await Submission.find({ submittedBy: req.student._id }).select('test totalCorrect').lean();
+    res.json({ tests, attemptedTests });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -98,30 +113,47 @@ router.post('/submissions', async (req, res) => {
   }
 });
 
-const upload = multer({ storage, limits: { fileSize: 30000 } });
+const upload = multer({ storage, limits: { fileSize: 300000 } });
 router.post('/test-application', upload.single('image'), async (req, res) => {
   try {
+    // Ensure file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'Image file is required.' });
+    }
+
+    // Check if application already exists
     const foundApplication = await Application.findOne({
       test: req.body.test,
       student: req.student._id,
     });
+
     if (foundApplication) {
-      fs.unlinkSync(`uploads/challans/${req.file.originalname}`);
-      throw new Error('Already applied');
+      // Construct full file path safely
+      // const filePath = path.join(__dirname, '..', '..', 'uploads', 'challans', req.student._id, req.file.filename);
+      const filePath = path.join(req.file.destination, req.file.filename);
+      console.log('Deleting uploaded file:', filePath);
+
+      // Delete uploaded file
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      return res.status(400).json({ error: 'Already applied' });
     }
-    const oldFileName = req.file.originalname;
-    const ext = path.extname(oldFileName);
-    const newName = `${oldFileName}${Math.random()}${ext}`;
-    fs.renameSync(`uploads/challans/${oldFileName}`, `uploads/challans/${newName}`);
-    const application = req.body;
-    const updated = {
-      ...application,
-      image: newName,
+
+    // Prepare application data
+    const application = {
+      ...req.body,
+      image: req.file.filename,
       student: req.student._id,
     };
-    const newApplication = await Application.create(updated);
+
+    // Create application
+    const newApplication = await Application.create(application);
     res.json({ newApplication });
+
   } catch (e) {
+    console.error('Upload error:', e);
     res.status(500).json({ error: e.message });
   }
 });
