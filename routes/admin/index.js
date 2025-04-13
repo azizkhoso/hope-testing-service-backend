@@ -36,6 +36,7 @@ const testSchema = yup.object({
   startsAt: yup.date().min(new Date(), 'Test cannot be hold in past time'),
   submittableBefore: yup.date().min(new Date(), 'Test cannot be uploaded after end time').required('End time is required'),
   isDemo: yup.bool(),
+  price: yup.number(),
   questions: yup.array().min(3, 'The test should have at least 3 questions'),
 });
 const mcqsSchema = yup.object({

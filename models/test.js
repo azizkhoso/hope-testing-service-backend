@@ -27,6 +27,10 @@ const TestSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  price: {
+    type: Number,
+    default: 0,
+  },
   createdBy: {
     type: String,
     default: '',
