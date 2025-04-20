@@ -14,6 +14,7 @@ const Submission = require('../../models/submission');
 
 const applicationsRouter = require('./application');
 const studentsRouter = require('./students');
+const teachersRouter = require('./teachers');
 
 const storage = multer.diskStorage({
   destination: (req, res, cb) => {
@@ -63,6 +64,7 @@ const router = express.Router();
 
 router.use('/test-applications', applicationsRouter);
 router.use('/students', studentsRouter);
+router.use('/teachers', teachersRouter);
 
 router.get('/dashboard', async (req, res) => {
   res.end('Admin dashboard');
