@@ -59,6 +59,15 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/:_id', async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(req.params._id);
+    res.json({ teacher });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 router.put('/:_id', async (req, res) => {
   try {
     await teacherSchema.validate(req.body);
