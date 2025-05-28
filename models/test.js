@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { nanoid } = require('nanoid');
+const Teacher = require('./teacher');
 
 const TestSchema = mongoose.Schema({
   title: {
@@ -32,9 +33,8 @@ const TestSchema = mongoose.Schema({
     default: 0,
   },
   createdBy: {
-    type: String,
-    default: '',
-    trim: true,
+    type: mongoose.Types.ObjectId,
+    ref: Teacher,
   },
   questions: {
     type: [

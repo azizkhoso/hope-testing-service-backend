@@ -6,6 +6,7 @@ const yup = require('yup');
 const StatusMessageError = require('../others/StatusMessageError');
 
 const Student = require('../models/student');
+const Teacher = require('../models/teacher');
 
 const router = express.Router();
 
@@ -53,8 +54,37 @@ router.post('/student', async (req, res) => {
   }
 });
 
-router.post('/teacher', (req, res) => {
-  res.json({ teacher: 't1', token: 't1' });
+router.post('/teacher', async (req, res) => {
+  try {
+    await schema.validate(req.body);
+    const result = await Teacher.findOne({ email: req.body.email }).select();
+    if (!result) throw new Error('Teacher not found');
+    // The record lies in _doc field for Mongoose findeOne
+    if (!result._doc) throw new Error('Teacher not found');
+    const teacher = result._doc;
+    if (teacher.password !== req.body.password)
+      throw new Error('Incorrect password, please try again');
+    // if (!teacher.isEmailVerified) throw new Error('Email not verified, please verify your email');
+    const token = jwt.sign(
+      {
+        teacher: { ...teacher, password: undefined },
+        role: 'teacher',
+      }, // Password should not be shared
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '1h',
+      },
+    );
+    return res.json({
+      teacher: {
+        ...teacher,
+        password: undefined, // Password should not be shared
+      },
+      token,
+    });
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
 });
 
 router.post('/admin', async (req, res) => {
