@@ -102,8 +102,16 @@ router.delete('/announcements/:_id', async (req, res) => {
 });
 
 router.get('/tests', async (req, res) => {
-  const tests = await Test.find({}, { questions: 0 });
-  res.json({ tests });
+  const lim = 10;
+  const page = Number(req.query.page || 0);
+  const totalTests = await Test.count();
+  // fetch query
+  const q = Test.find({}, { questions: 0 }).skip(page * lim).limit(lim);
+  if (req.teacher?._id) {
+    q.where({ createdBy: req.teacher._id });
+  }
+  const tests = await q.exec();
+  res.json({ tests, total: totalTests });
 });
 
 router.get('/tests/:_id', async (req, res) => {
@@ -151,7 +159,10 @@ router.post('/tests', upload.array('images'), async (req, res) => {
     test.questions.forEach((q) => { duration += q.duration * 1000; });
     const endsAt = startsAt + duration;
     if (submittableBefore < endsAt) throw new Error(`Test should end at least ${Math.ceil(Number(duration / (1000 * 60)))} minutes after starting`);
-    const newTest = await Test.create(test);
+    const newTest = await Test.create({
+      ...test,
+      createdBy: req.teacher?._id || '',
+    });
     res.json({ _id: newTest._id, title: newTest.title });
   } catch (e) {
     res.status(400).json({ error: e.message });
