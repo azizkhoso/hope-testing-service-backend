@@ -9,6 +9,7 @@ const loginRouter = require('./routes/login');
 const othersRouter = require('./routes/others');
 const adminRouter = require('./routes/admin');
 const studentRouter = require('./routes/student');
+const teacherRouter = require('./routes/teacher');
 
 const verifyToken = require('./middlewares/verifyToken');
 
@@ -37,6 +38,7 @@ app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
 app.use('/admin', verifyToken, adminRouter);
 app.use('/student', verifyToken, studentRouter);
+app.use('/teacher', verifyToken, teacherRouter);
 
 db.once('open', () => console.log('Connected to database successfully...'));
 app.listen(process.env.PORT, () => console.log(`Listening on port ${process.env.PORT}`));

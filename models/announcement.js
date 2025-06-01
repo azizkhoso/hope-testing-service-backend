@@ -19,6 +19,11 @@ const AnnouncementSchema = mongoose.Schema({
     trim: true,
     default: '',
   },
+  createdBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Teacher',
+    default: null,
+  },
   isImportant: {
     type: Boolean,
     default: false,
