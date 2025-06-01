@@ -161,7 +161,7 @@ router.post('/tests', upload.array('images'), async (req, res) => {
     if (submittableBefore < endsAt) throw new Error(`Test should end at least ${Math.ceil(Number(duration / (1000 * 60)))} minutes after starting`);
     const newTest = await Test.create({
       ...test,
-      createdBy: req.teacher?._id || '',
+      createdBy: req.teacher?._id || null,
     });
     res.json({ _id: newTest._id, title: newTest.title });
   } catch (e) {
@@ -242,9 +242,39 @@ router.delete('/tests/:_id', async (req, res) => {
 
 router.get('/submissions/:testId', async (req, res) => {
   try {
-    const submissions = await Submission.find({ test: req.params.testId }).populate('test').populate('submittedBy').sort({ totalCorrect: 'desc' });
-    res.json({ submissions });
+    // add pagination
+    const lim = 10;
+    const page = Number(req.query.page || 0);
+    // if admin get all submissions instead of filtering by teacher
+    if (!req.teacher) {
+      const totalSubmissions = await Submission.count();
+      const submissions = await Submission.find()
+        .populate({ path: 'test' })
+        .populate('submittedBy')
+        .sort({ totalCorrect: 'desc' })
+        .skip(page * lim)
+        .limit(lim);
+      res.json({ submissions, total: totalSubmissions, page, limit: lim });
+    } else {
+      // else do the following
+      // get submissions of those tests that were created by req.teacher._id
+      const testsQuery = Test.find().select('_id');
+      if (req.teacher?._id) {
+        testsQuery.where({ createdBy: req.teacher._id });
+      }
+      const tests = await testsQuery.exec();
+      const ids = tests.map((t) => t._id);
+      const totalSubmissions = await Submission.count({ test: { $in: ids } });
+      const submissions = await Submission.find({ test: { $in: ids } })
+        .populate({ path: 'test' })
+        .populate('submittedBy')
+        .sort({ totalCorrect: 'desc' })
+        .skip(page * lim)
+        .limit(lim);
+      res.json({ submissions, total: totalSubmissions, page, limit: lim });
+    }
   } catch (e) {
+    console.error(e);
     res.status(500).json({ error: e.message });
   }
 });

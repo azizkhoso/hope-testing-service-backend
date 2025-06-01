@@ -35,6 +35,7 @@ const TestSchema = mongoose.Schema({
   createdBy: {
     type: mongoose.Types.ObjectId,
     ref: Teacher,
+    default: null,
   },
   questions: {
     type: [
